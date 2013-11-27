@@ -35,10 +35,8 @@ import qualified Distribution.TestSuite             as TS
 
 
 
--- | Detailed-0.9/Cabal-1.14.0 test suite
-
-tests :: [TS.Test] 
-tests = map TS.impure test_list
+tests :: IO [TS.Test] 
+tests = mapM (return . TS.Test . mkTest) test_list
 
 
 -- map TS.impure simple_tests
@@ -451,23 +449,28 @@ parse_rfc1123 = parseTime defaultTimeLocale "%a, %d %b %Y %T %Z" . B.unpack
 test_dir :: FilePath
 test_dir = "aws4_testsuite"
 
-    
+
 newtype SimpleTest = ST { _ST :: FilePath }
     deriving (Show,Eq)
 
-instance TS.TestOptions SimpleTest where
-    name           = name_test
-    options        = const []
-    defaultOptions = const $ return $ TS.Options []
-    check          = const $ const $ return []
+--instance TS.TestOptions SimpleTest where
+--    name           = name_test
+--    options        = const []
+--    defaultOptions = const $ return $ TS.Options []
+--    check          = const $ const $ return []
 
-instance TS.ImpureTestable SimpleTest where
-    runM (ST fp) _ = 
-            case fp of
-              "" -> test_tests
-              _  -> fmap cnv $ test_authz fp
-      where
-        cnv ok = if ok then TS.Pass else TS.Fail "Failed"
+mkTest :: SimpleTest -> TS.TestInstance
+mkTest tst@(ST fp) = TS.TestInstance {
+      name = name_test tst
+    , options = []
+    , tags    = []
+    , run = case fp of
+      "" -> test_tests
+      _  -> fmap cnv $ test_authz fp
+    , setOption = \_ _ -> Left "Not supported"
+    }
+  where
+    cnv ok = if ok then TS.Finished TS.Pass else TS.Finished (TS.Fail "Failed")
 
 -- SimpleTest with empty file path => precheck (check list of tests consistent
 -- with input test files in the file system)
@@ -481,12 +484,12 @@ name_test (ST fp) =
 -- Cabal seems to need a static list of tests: list them in board and
 -- provide a test for checking it is up-to-date
 
-test_tests :: IO TS.Result
+test_tests :: IO TS.Progress
 test_tests =
  do fps <- scavenge_tests
     case map ST fps == test_list' of
-      True  -> return   TS.Pass
-      False -> return $ TS.Fail "list of tests out of date"
+      True  -> return . TS.Finished $ TS.Pass
+      False -> return $ TS.Finished $ TS.Fail "list of tests out of date"
 
 test_list, test_list' :: [SimpleTest]
 

@@ -12,9 +12,10 @@ module Aws.Sign4
 
 import           Aws.Core
 import           Crypto.Hash
+import qualified Crypto.Hash.SHA256             as Sha256
+import qualified Crypto.MAC.HMAC                as HMAC
 import           Data.Byteable
-import qualified Data.ByteString          as B
-import           Data.ByteString.Char8    ({- IsString -})
+import qualified Data.ByteString                as B
 import qualified Data.ByteString.Char8          as BC
 import qualified Data.CaseInsensitive           as CI
 import           Data.Char
@@ -213,7 +214,7 @@ s4_hmac' :: B.ByteString -> B.ByteString -> B.ByteString
 s4_hmac' = flip s4_hmac
 
 s4_hmac :: B.ByteString -> B.ByteString -> B.ByteString
-s4_hmac key = toBytes . hmac sha256 64 key
+s4_hmac key = toBytes . HMAC.hmac Sha256.hash 64 key
 
 sha256 :: B.ByteString -> Digest SHA256
 sha256 = hash
