@@ -1,5 +1,5 @@
 Name:                aws-sign4
-Version:             1.1.0.0
+Version:             1.1.0.1
 Synopsis:            Amazon Web Services (AWS) Signature v4 HTTP request signer
 Description:         Functions to sign AWS requests with the AWS Signature-V4 protocol (required for the Elastic Transcoder service)
 Homepage:            http://github.com/iconnect/aws-sign4
@@ -29,7 +29,7 @@ Library
 
     Build-depends:
         aws                 >= 0.8.3    && < 0.9    ,
-        base                >= 4.6      && < 4.7    ,
+        base                >= 4.6      && < 5.0    ,
         blaze-builder       >= 0.2.1.4              ,
         byteable            >= 0.1.0                ,
         bytestring          >= 0.10     && < 0.11   ,
